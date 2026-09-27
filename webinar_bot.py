@@ -15,6 +15,10 @@ from telegram.ext import (
 # ==== توکن بات: یا اینجا مستقیم بنویسید، یا از متغیر محیطی BOT_TOKEN بخوانید ====
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "PASTE_YOUR_TOKEN_HERE")
 
+# ==== آیدی عددی تلگرام شما (ادمین) — فقط همین آیدی می‌تواند /export را اجرا کند ====
+# برای گرفتن آیدی عددی خودتان، به بات @userinfobot پیام بدهید.
+ADMIN_ID = os.environ.get("ADMIN_ID", "")
+
 # مراحل مکالمه
 NAME, GRADE = range(2)
 
@@ -63,6 +67,22 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
+async def export_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+
+    # فقط ادمین اجازه دارد فایل را بگیرد
+    if ADMIN_ID and user_id != ADMIN_ID:
+        await update.message.reply_text("شما اجازه دسترسی به این دستور را ندارید.")
+        return
+
+    if not os.path.isfile(DATA_FILE):
+        await update.message.reply_text("هنوز هیچ ثبت‌نامی انجام نشده است.")
+        return
+
+    with open(DATA_FILE, "rb") as f:
+        await update.message.reply_document(document=f, filename=DATA_FILE)
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
@@ -76,6 +96,7 @@ def main():
     )
 
     app.add_handler(conv_handler)
+    app.add_handler(CommandHandler("export", export_data))
     print("Bot is running...")
     app.run_polling()
 
