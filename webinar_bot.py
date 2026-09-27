@@ -20,7 +20,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN", "PASTE_YOUR_TOKEN_HERE")
 ADMIN_ID = os.environ.get("ADMIN_ID", "")
 
 # مراحل مکالمه
-NAME, GRADE = range(2)
+NAME, GRADE, FIELD, PHONE = range(4)
 
 DATA_FILE = "registrations.csv"
 
@@ -40,6 +40,18 @@ async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_grade(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["grade"] = update.message.text
+    await update.message.reply_text("رشته تحصیلی خود را وارد کنید:")
+    return FIELD
+
+
+async def get_field(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["field"] = update.message.text
+    await update.message.reply_text("شماره همراه خود برای ورود به وبینار را وارد کنید:")
+    return PHONE
+
+
+async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["phone"] = update.message.text
     user = update.effective_user
 
     # ذخیره در فایل CSV
@@ -47,17 +59,23 @@ async def get_grade(update: Update, context: ContextTypes.DEFAULT_TYPE):
     with open(DATA_FILE, "a", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)
         if not file_exists:
-            writer.writerow(["تاریخ", "آیدی تلگرام", "یوزرنیم", "نام", "پایه"])
+            writer.writerow(
+                ["تاریخ", "آیدی تلگرام", "یوزرنیم", "نام", "پایه", "رشته", "شماره همراه"]
+            )
         writer.writerow([
             datetime.now().strftime("%Y-%m-%d %H:%M"),
             user.id,
             user.username or "-",
             context.user_data["name"],
             context.user_data["grade"],
+            context.user_data["field"],
+            context.user_data["phone"],
         ])
 
     await update.message.reply_text(
-        "ثبت‌نام شما با موفقیت انجام شد! از حضورتان در وبینار آپولو خوشحال می‌شویم. 🚀"
+        "ثبت‌نام شما با موفقیت انجام شد! ✅\n\n"
+        "برای دریافت لینک ورود به وبینار، در کانال زیر عضو شوید:\n"
+        "https://t.me/Apolo_konkur402"
     )
     return ConversationHandler.END
 
@@ -91,6 +109,8 @@ def main():
         states={
             NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
             GRADE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_grade)],
+            FIELD: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_field)],
+            PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
