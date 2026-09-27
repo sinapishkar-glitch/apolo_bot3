@@ -107,10 +107,10 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
-            GRADE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_grade)],
-            FIELD: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_field)],
-            PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)],
+            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND & filters.UpdateType.MESSAGE, get_name)],
+            GRADE: [MessageHandler(filters.TEXT & ~filters.COMMAND & filters.UpdateType.MESSAGE, get_grade)],
+            FIELD: [MessageHandler(filters.TEXT & ~filters.COMMAND & filters.UpdateType.MESSAGE, get_field)],
+            PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND & filters.UpdateType.MESSAGE, get_phone)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
