@@ -1,0 +1,84 @@
+import csv
+import os
+from datetime import datetime
+
+from telegram import Update
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    ConversationHandler,
+    ContextTypes,
+    filters,
+)
+
+# ==== توکن بات: یا اینجا مستقیم بنویسید، یا از متغیر محیطی BOT_TOKEN بخوانید ====
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "PASTE_YOUR_TOKEN_HERE")
+
+# مراحل مکالمه
+NAME, GRADE = range(2)
+
+DATA_FILE = "registrations.csv"
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "برای ثبت‌نام در وبینار آپولو، نام و نام خانوادگی خود را وارد کنید:"
+    )
+    return NAME
+
+
+async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["name"] = update.message.text
+    await update.message.reply_text("پایه تحصیلی خود را وارد کنید:")
+    return GRADE
+
+
+async def get_grade(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["grade"] = update.message.text
+    user = update.effective_user
+
+    # ذخیره در فایل CSV
+    file_exists = os.path.isfile(DATA_FILE)
+    with open(DATA_FILE, "a", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(["تاریخ", "آیدی تلگرام", "یوزرنیم", "نام", "پایه"])
+        writer.writerow([
+            datetime.now().strftime("%Y-%m-%d %H:%M"),
+            user.id,
+            user.username or "-",
+            context.user_data["name"],
+            context.user_data["grade"],
+        ])
+
+    await update.message.reply_text(
+        "ثبت‌نام شما با موفقیت انجام شد! از حضورتان در وبینار آپولو خوشحال می‌شویم. 🚀"
+    )
+    return ConversationHandler.END
+
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("ثبت‌نام لغو شد.")
+    return ConversationHandler.END
+
+
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
+        states={
+            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
+            GRADE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_grade)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
+    app.add_handler(conv_handler)
+    print("Bot is running...")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
