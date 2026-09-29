@@ -27,26 +27,32 @@ DATA_FILE = "registrations.csv"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "برای ثبت‌نام در وبینار آپولو، نام و نام خانوادگی خود را وارد کنید:"
+        "سلام! 👋 خوش اومدی به وبینار آپولو 🚀\n"
+        "برای اینکه جاتو رزرو کنیم، اسم و فامیلیتو بنویس:"
     )
     return NAME
 
 
 async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["name"] = update.message.text
-    await update.message.reply_text("پایه تحصیلی خود را وارد کنید:")
+    first_name = context.user_data["name"].split()[0]
+    await update.message.reply_text(
+        f"عالی، {first_name}! ✨ حالا بگو کدوم پایه‌ای؟ (مثلاً دهم، یازدهم، دوازدهم یا فارغ‌التحصیل)"
+    )
     return GRADE
 
 
 async def get_grade(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["grade"] = update.message.text
-    await update.message.reply_text("رشته تحصیلی خود را وارد کنید:")
+    await update.message.reply_text("خوبه! 📚 رشته‌ت چیه؟ (ریاضی، تجربی، انسانی...)")
     return FIELD
 
 
 async def get_field(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["field"] = update.message.text
-    await update.message.reply_text("شماره همراه خود برای ورود به وبینار را وارد کنید:")
+    await update.message.reply_text(
+        "آخرین قدم! 📱 شماره موبایلتو بفرست تا لینک ورود به وبینار برات ارسال بشه:"
+    )
     return PHONE
 
 
@@ -73,8 +79,8 @@ async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ])
 
     await update.message.reply_text(
-        "ثبت‌نام شما با موفقیت انجام شد! ✅\n\n"
-        "برای دریافت لینک ورود به وبینار، در کانال زیر عضو شوید:\n"
+        "✅ تبریک! ثبت‌نامت انجام شد 🎉\n"
+        "یه قدم دیگه مونده: برای گرفتن لینک ورود به وبینار، تو کانال زیر عضو شو 👇\n"
         "https://t.me/Apolo_konkur402"
     )
     return ConversationHandler.END
